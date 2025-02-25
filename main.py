@@ -28,16 +28,17 @@ if __name__ == "__main__":
     # Load Model
     model = ModelFactory.get_model(config["model"], config["num_classes"]).to(device)
     checkpoint_path = "weights\model_checkpoint.pth"
+    classification_criterion = nn.CrossEntropyLoss()
+    segmentation_criterion = nn.BCEWithLogitsLoss()  # Per la segmentazione binaria
 
     # Load weights if available
     if args.mode == 'evaluate':
         model = load_weights(model, checkpoint_path)
-        criterion = nn.CrossEntropyLoss()
-        evaluate_model(model, dataloader, criterion, device, logger)
+        evaluate_model(model, dataloader, classification_criterion, segmentation_criterion, device, logger)
 
     elif args.mode == 'train':
-        criterion = nn.CrossEntropyLoss()
+        
         optimizer = optim.Adam(model.parameters(), lr=config["learning_rate"])
         
         # Train Model
-        train_model(model, dataloader, criterion, optimizer, device, logger, checkpoint_path, config["num_epochs"])
+        train_model(model, dataloader, classification_criterion, segmentation_criterion, optimizer, device, logger, checkpoint_path, config["num_epochs"])

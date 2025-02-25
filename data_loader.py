@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from PIL import Image
 import torchvision.transforms as transforms
 from preprocessing import Preprocessing, PreprocessingStrategy  # Import the PreprocessingStrategy class
+from utils import rle_to_mask
 
 class CustomImageDataset(Dataset):
     def __init__(self, csv_file, dataset_path, transform=None):
@@ -14,7 +15,7 @@ class CustomImageDataset(Dataset):
         
         # Load CSV data
         #self.data = pd.read_csv(csv_file)
-        self.data = pd.read_csv(csv_file).drop(columns=['EncodedPixels'], errors='ignore')
+        self.data = pd.read_csv(csv_file)
         
     def __len__(self):
         return len(self.data)
@@ -23,11 +24,12 @@ class CustomImageDataset(Dataset):
         img_name = os.path.join(self.dataset_path, self.data.iloc[idx, 0])  # ImageId column
         image = Image.open(img_name).convert("RGB")
         label = int(self.data.loc[idx, 'ClassId'])  # ClassId column
+        mask = rle_to_mask(self.data.iloc[idx]["EncodedPixels"])
         
         if self.transform:
             image = self.transform(image)
         
-        return image, label
+        return image, label, mask
 
 class DataLoader_:
     @staticmethod
