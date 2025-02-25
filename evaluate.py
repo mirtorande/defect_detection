@@ -62,6 +62,7 @@ def visualize_predictions(model, dataloader, device, num_images=5):
 
     # Resize masks to match image size (if necessary)
     resize_transform = transforms.Resize((224, 224))  # Match image size
+    #masks = resize_transform(masks)
 
     with torch.no_grad():
         # Get predictions
@@ -70,22 +71,24 @@ def visualize_predictions(model, dataloader, device, num_images=5):
 
         # Get segmentation masks (after applying sigmoid to logits)
         seg_preds = torch.sigmoid(seg_preds)
-        seg_preds = (seg_preds > 0.4).float()  # Binarize predictions
-        seg_preds = resize_transform(seg_preds)
+        #seg_preds = (seg_preds > 0.13).float()  # Binarize predictions
+        seg_preds_resized = resize_transform(seg_preds)
 
-    fig, axes = plt.subplots(1, num_images, figsize=(12, 4))
+    fig, axes = plt.subplots(2, num_images, figsize=(12, 12))  # 3 rows for original, seg_mask, and mask
     for i in range(num_images):
+        # Plot original image
         image = images[i].cpu().numpy().transpose((1, 2, 0))
         image = np.clip(image, 0, 1)
+        #actual_mask = masks[i].cpu().numpy()  # Ground truth mask
+        axes[0, i].imshow(image)
+        #axes[0, i].imshow(actual_mask, alpha=0.5, cmap='summer')  # Overlay actual mask with transparency
+        axes[0, i].set_title(f'Class Pred: {predicted_class[i].item()} \nLabel: {labels[i].item()}')
+        axes[0, i].axis('off')
 
-        # Plot the image
-        axes[i].imshow(image)
-        axes[i].set_title(f'Class Pred: {predicted_class[i].item()} \nLabel: {labels[i].item()}')
-
-        # Plot the segmentation mask
-        seg_mask = seg_preds[i].squeeze(0).cpu().numpy()  # Remove the channel dimension
-        axes[i].imshow(seg_mask, alpha=0.5, cmap='viridis')  # Overlay segmentation mask
-        axes[i].axis('off')
+        # Plot predicted segmentation mask
+        seg_mask = seg_preds_resized[i].squeeze(0).cpu().numpy()  # Remove the channel dimension
+        axes[1, i].imshow(seg_mask, alpha=0.5, cmap='rainbow')  # Overlay segmentation mask
+        axes[1, i].axis('off')
 
     plt.savefig('output/predictions_with_masks.png')  # Saves the plot as an image file
     plt.show()

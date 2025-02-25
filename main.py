@@ -38,7 +38,7 @@ if __name__ == "__main__":
 
     elif args.mode == 'train':
         
-        optimizer = optim.Adam(model.parameters(), lr=config["learning_rate"])
+        optimizer = optim.AdamW(model.parameters(), lr=config["learning_rate"], weight_decay=config["weight_decay"])
         
         # Train Model
         train_model(model, dataloader, classification_criterion, segmentation_criterion, optimizer, device, logger, checkpoint_path, config["num_epochs"])
