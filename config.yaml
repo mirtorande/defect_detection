@@ -1,5 +1,5 @@
 dataset_path: "data/train"
-csv_path: "data/train.csv"
+csv_path: "data/dataset.csv"
 batch_size: 32
 learning_rate: 0.00001
 model: "mobilenet_v2"

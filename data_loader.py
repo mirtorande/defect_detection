@@ -1,6 +1,7 @@
 import pandas as pd
 import os
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import Dataset, DataLoader, Subset
+from sklearn.model_selection import train_test_split
 from PIL import Image
 import torchvision.transforms as transforms
 from preprocessing import Preprocessing, PreprocessingStrategy  # Import the PreprocessingStrategy class
@@ -12,7 +13,8 @@ class CustomImageDataset(Dataset):
         self.transform = transform
         
         # Load CSV data
-        self.data = pd.read_csv(csv_file)
+        #self.data = pd.read_csv(csv_file)
+        self.data = pd.read_csv(csv_file).drop(columns=['EncodedPixels'], errors='ignore')
         
     def __len__(self):
         return len(self.data)
@@ -31,24 +33,39 @@ class DataLoader_:
     @staticmethod
     def get_dataloader(config, strategy=PreprocessingStrategy.DEFAULT, training=False):
         transform = Preprocessing.get_transforms(strategy)
-        
-        # Create the custom dataset using the CSV file
+
+        # Load full dataset
         dataset = CustomImageDataset(csv_file=config["csv_path"], dataset_path=config["dataset_path"], transform=transform)
-        print(dataset.data['ClassId'].unique())
 
+        # Load dataset metadata
+        df = dataset.data  # Assuming `CustomImageDataset` reads a CSV into `self.data`
         
+        # Check if train/test split already exists
+        try:
+            train_df = pd.read_csv("data/train.csv")
+            test_df = pd.read_csv("data/test.csv")
+            print("Loaded existing train/test split.")
+        except FileNotFoundError:
+            # Perform train/test split (first time)
+            train_df, test_df = train_test_split(df, test_size=0.2, random_state=42, stratify=df['ClassId'])
+            
+            # Save to CSV for future runs
+            train_df.to_csv("data/train.csv", index=False)
+            test_df.to_csv("data/test.csv", index=False)
+            print("Saved new train/test split.")
+
+        # Get dataset indices corresponding to train/test splits
+        train_indices = train_df.index.tolist()
+        test_indices = test_df.index.tolist()
+
+        # Create subsets for train and test
+        train_dataset = Subset(dataset, train_indices)
+        test_dataset = Subset(dataset, test_indices)
+
+        # Select the appropriate dataset
+        selected_dataset = train_dataset if training else test_dataset
+
         # Create the dataloader
-        dataloader = DataLoader(dataset, batch_size=config["batch_size"], shuffle=True)
+        dataloader = DataLoader(selected_dataset, batch_size=config["batch_size"], shuffle=training)
 
-        train_size = int(0.8 * len(dataset))  # 80% for training
-        test_size = len(dataset) - train_size  # Remaining 20% for testing
-        
-        # Use random_split to partition the dataset
-        train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
-
-        if training:
-            dataloader = DataLoader(train_dataset, batch_size=config["batch_size"], shuffle=True)
-        else:
-            dataloader = DataLoader(test_dataset, batch_size=config["batch_size"], shuffle=False)
-        
         return dataloader
