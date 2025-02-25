@@ -1,0 +1,6 @@
+dataset_path: "data/train"
+csv_path: "data/train.csv"
+batch_size: 32
+learning_rate: 0.001
+model: "resnet18"
+num_classes: 4
