@@ -6,25 +6,32 @@ import torchvision.models as models
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-def train_model(model, dataloader, criterion, optimizer, device, logger, checkpoint_path):
-    model.train()
-    for batch_idx, (images, labels) in enumerate(tqdm(dataloader, desc="Training", unit="batch")):
-        images, labels = images.to(device), labels.to(device)
-        labels = labels - 1  # from 1-based to 0-based
+def train_model(model, dataloader, criterion, optimizer, device, logger, checkpoint_path, num_epochs=10):
+    for epoch in range(num_epochs):
+        model.train()
+        epoch_loss = 0
+        for batch_idx, (images, labels) in enumerate(tqdm(dataloader, desc=f"Epoch {epoch+1}/{num_epochs}", unit="batch")):
+            images, labels = images.to(device), labels.to(device)
+            labels = labels - 1  # from 1-based to 0-based
 
-        optimizer.zero_grad()
-        outputs = model(images)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+            optimizer.zero_grad()
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
 
-        if (batch_idx + 1) % 10 == 0:  # Print loss every 10 batches
-            logger.log(f"Batch {batch_idx+1}/{len(dataloader)}: Loss = {loss.item():.4f}")
+            epoch_loss += loss.item()
 
-    logger.log(f"Training loss: {loss.item():.4f}")
+            if (batch_idx + 1) % 10 == 0:  # Print loss every 10 batches
+                logger.log(f"Batch {batch_idx+1}/{len(dataloader)}: Loss = {loss.item():.4f}")
 
-    # Save weights after training
-    print(f"Saving model weights to {checkpoint_path}")
-    torch.save({
-        'model_state_dict': model.state_dict(),
-    }, checkpoint_path)
+        # Calculate average loss for the epoch
+        avg_epoch_loss = epoch_loss / len(dataloader)
+        logger.log(f"Epoch {epoch+1} loss: {avg_epoch_loss:.4f}")
+
+        # Save model weights after each epoch
+        print(f"Saving model weights to {checkpoint_path}_epoch{epoch+1}.pth")
+        torch.save({
+            'model_state_dict': model.state_dict(),
+        }, f"{checkpoint_path}_epoch{epoch+1}.pth")
+

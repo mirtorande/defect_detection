@@ -23,11 +23,11 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # Load Dataset
-    dataloader = DataLoader_.get_dataloader(config, PreprocessingStrategy.AUGMENTED)
+    dataloader = DataLoader_.get_dataloader(config, PreprocessingStrategy.AUGMENTED, args.mode == 'train')
 
     # Load Model
     model = ModelFactory.get_model(config["model"], config["num_classes"]).to(device)
-    checkpoint_path = "model_checkpoint.pth"
+    checkpoint_path = "weights\model_checkpoint.pth"
 
     # Load weights if available
     if args.mode == 'evaluate':
@@ -40,4 +40,4 @@ if __name__ == "__main__":
         optimizer = optim.Adam(model.parameters(), lr=config["learning_rate"])
         
         # Train Model
-        train_model(model, dataloader, criterion, optimizer, device, logger, checkpoint_path)
+        train_model(model, dataloader, criterion, optimizer, device, logger, checkpoint_path, config["num_epochs"])

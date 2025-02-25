@@ -29,6 +29,10 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
+output/
+weights/
+
 MANIFEST
 
 # PyInstaller

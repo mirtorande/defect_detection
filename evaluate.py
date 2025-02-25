@@ -42,6 +42,7 @@ def visualize_predictions(model, dataloader, device, num_images=5):
     model.eval()
     images, labels = next(iter(dataloader))
     images, labels = images.to(device), labels.to(device)
+    labels = labels - 1  # from 1-based to 0-based
     
     with torch.no_grad():
         outputs = model(images)
@@ -55,6 +56,6 @@ def visualize_predictions(model, dataloader, device, num_images=5):
         axes[i].imshow(image)
         axes[i].set_title(f'Pred: {predicted[i].item()} \nLabel: {labels[i].item()}')
         axes[i].axis('off')
-    plt.savefig('predictions.png')  # Saves the plot as an image file
+    plt.savefig('output/predictions.png')  # Saves the plot as an image file
 
     plt.show()
