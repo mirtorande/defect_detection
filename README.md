@@ -6,8 +6,7 @@ This project focuses on developing a machine learning model to detect defects in
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Dataset](#dataset)
-- [Model](#model)
+- [Models](#model)
 - [Results](#results)
 - [Contributing](#contributing)
 - [License](#license)
@@ -19,7 +18,7 @@ Defect detection is a critical task in manufacturing and quality control. This p
 To get started with this project, clone the repository and install the required dependencies:
 
 ```bash
-git clone https://github.com/yourusername/defect_detection.git
+git clone https://github.com/mirtorande/defect_detection.git
 cd defect_detection
 pip install -r requirements.txt
 ```
@@ -28,30 +27,11 @@ pip install -r requirements.txt
 To train the model, use the following command:
 
 ```bash
-python train.py --data_path /path/to/dataset --epochs 50
-```
-
-To run inference on new data, use:
-
-```bash
-python infer.py --model_path /path/to/model --data_path /path/to/new_data
-```
-
-## Dataset
-The dataset used for this project consists of images of materials with and without defects. Ensure that your dataset is organized in the following structure:
-
-```
-dataset/
-    train/
-        defective/
-        non_defective/
-    test/
-        defective/
-        non_defective/
+python train.py
 ```
 
 ## Model
-The model is built using a convolutional neural network (CNN) architecture. Details about the model architecture and training process can be found in the `model.py` file.
+The model is built using a pre-trained image classification models as a backbone (either ResNet18, ResNet50 or MobileNetV2). Details about the model architecture and training process can be found in the `model_factory.py` file.
 
 ## Results
 The results of the model, including accuracy and loss metrics, will be saved in the `results` directory. Visualizations of the training process can be found in the `plots` directory.
